@@ -1,0 +1,378 @@
+openapi: 3.0.3
+info:
+  title: Battlesnake API
+  description: This specification describes the endpoints that a Battlesnake engine calls on your Battlesnake server.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8000  # Update to your actual server address/port
+
+paths:
+  "/" :
+    get:
+      summary: Retrieve Battlesnake info
+      description: >
+        The Battlesnake engine calls this endpoint to get basic information 
+        about your Battlesnake: API version, author, color, head, and tail.
+      responses:
+        '200':
+          description: Successful response containing your Battlesnake info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InfoResponse"
+
+  "/start":
+    post:
+      summary: Start a new game
+      description: >
+        The Battlesnake engine calls this endpoint at the start of every 
+        new game. You can use this to initialize or reset any data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameState"
+      responses:
+        '200':
+          description: An optional response acknowledging the start of the game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartResponse"
+
+  "/move":
+    post:
+      summary: Get the next move
+      description: >
+        The Battlesnake engine calls this every turn. Must respond with one of 
+        the four moves: up, down, left, or right.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveRequest"
+      responses:
+        '200':
+          description: Returns your Battlesnake's chosen move
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoveResponse"
+
+  "/end":
+    post:
+      summary: End the current game
+      description: >
+        The Battlesnake engine calls this endpoint after a game concludes. 
+        You can use this to finalize or log data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GameState"
+      responses:
+        '200':
+          description: Acknowledgment of the end of the game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndResponse"
+
+components:
+  schemas:
+    # -----------------------------------------
+    # InfoResponse
+    # -----------------------------------------
+    InfoResponse:
+      type: object
+      properties:
+        apiversion:
+          type: string
+          description: Battlesnake API version. Typically "1"
+        author:
+          type: string
+          description: Your username, Twitter handle, etc.
+        color:
+          type: string
+          description: Hex color code used to display your snake
+        head:
+          type: string
+          description: Head image type
+        tail:
+          type: string
+          description: Tail image type
+        version:
+          type: string
+          description: Your Battlesnake version or build
+      required:
+        - apiversion
+      example:
+        apiversion: "1"
+        author: "BattlesnakeTeam"
+        color: "#888888"
+        head: "default"
+        tail: "default"
+        version: "0.0.1"
+
+    # -----------------------------------------
+    # StartResponse
+    # -----------------------------------------
+    StartResponse:
+      type: object
+      description: Typically empty response acknowledging game start
+      additionalProperties: true
+      example: {}
+
+    # -----------------------------------------
+    # MoveRequest
+    # -----------------------------------------
+    MoveRequest:
+      $ref: "#/components/schemas/GameState"
+
+    # -----------------------------------------
+    # MoveResponse
+    # -----------------------------------------
+    MoveResponse:
+      type: object
+      description: Your move decision and optional shout
+      properties:
+        move:
+          type: string
+          enum:
+            - up
+            - down
+            - left
+            - right
+          description: Which direction your Battlesnake is moving
+        shout:
+          type: string
+          description: A string message that will be displayed (optional)
+      required:
+        - move
+      example:
+        move: up
+        shout: "I am moving up!"
+
+    # -----------------------------------------
+    # EndResponse
+    # -----------------------------------------
+    EndResponse:
+      type: object
+      description: Typically empty response acknowledging game end
+      additionalProperties: false
+      example: {}
+
+    # -----------------------------------------
+    # GameState
+    # -----------------------------------------
+    GameState:
+      type: object
+      properties:
+        game:
+          $ref: "#/components/schemas/Game"
+        turn:
+          type: integer
+          description: Current turn in the game
+        board:
+          $ref: "#/components/schemas/Board"
+        you:
+          $ref: "#/components/schemas/Battlesnake"
+      required:
+        - game
+        - turn
+        - board
+        - you
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the game
+        ruleset:
+          $ref: "#/components/schemas/Ruleset"
+        map:
+          type: string
+          description: If applicable, the map used for the game
+        source:
+          type: string
+          description: The environment that started the game (e.g. "league")
+        timeout:
+          type: integer
+          description: How many milliseconds your Battlesnake has per move
+      required:
+        - id
+
+    Ruleset:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the ruleset (e.g., "standard")
+        version:
+          type: string
+          description: Version of the ruleset
+        settings:
+          $ref: "#/components/schemas/RulesetSettings"
+      required:
+        - name
+        - version
+        - settings
+
+    RulesetSettings:
+      type: object
+      properties:
+        foodSpawnChance:
+          type: integer
+          description: Percentage chance of food spawning
+        minimumFood:
+          type: integer
+          description: Minimum number of food items on the board
+        hazardDamagePerTurn:
+          type: integer
+          description: Damage dealt by being in a hazard each turn
+        royale:
+          type: object
+          description: Royale-specific game settings
+          properties:
+            shrinkEveryNTurns:
+              type: integer
+              description: |
+                In Royale mode, the number of turns between generating new hazards
+                (shrinking the safe board space).
+        squad:
+          type: object
+          description: Squad-specific game settings
+          properties:
+            allowBodyCollisions:
+              type: boolean
+              description: |
+                In Squad mode, allow members of the same squad to move over each other
+                without dying.
+            sharedElimination:
+              type: boolean
+              description: |
+                In Squad mode, all squad members are eliminated when one is eliminated.
+            sharedHealth:
+              type: boolean
+              description: |
+                In Squad mode, all squad members share health.
+            sharedLength:
+              type: boolean
+              description: |
+                In Squad mode, all squad members share length.
+      required:
+        - foodSpawnChance
+        - minimumFood
+        - hazardDamagePerTurn
+      example:
+        foodSpawnChance: 15
+        minimumFood: 1
+        hazardDamagePerTurn: 14
+        royale:
+          shrinkEveryNTurns: 10
+        squad:
+          allowBodyCollisions: true
+          sharedElimination: false
+          sharedHealth: true
+          sharedLength: true
+
+    Board:
+      type: object
+      properties:
+        height:
+          type: integer
+          description: Height of the board
+        width:
+          type: integer
+          description: Width of the board
+        food:
+          type: array
+          description: Coordinates of all food
+          items:
+            $ref: "#/components/schemas/Coordinate"
+        hazards:
+          type: array
+          description: Coordinates of all hazards
+          items:
+            $ref: "#/components/schemas/Coordinate"
+        snakes:
+          type: array
+          description: Array of all snakes on the board (including you)
+          items:
+            $ref: "#/components/schemas/Battlesnake"
+      required:
+        - height
+        - width
+        - food
+        - hazards
+        - snakes
+
+    Coordinate:
+      type: object
+      properties:
+        x:
+          type: integer
+          description: X coordinate (0 = left)
+        y:
+          type: integer
+          description: Y coordinate (0 = bottom)
+      required:
+        - x
+        - y
+
+    Battlesnake:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the snake
+        name:
+          type: string
+          description: Display name of the snake
+        health:
+          type: integer
+          description: Current health (out of 100). Decreases every turn or when you do not eat
+        body:
+          type: array
+          description: Array of coordinates for every segment of the snake (head first)
+          items:
+            $ref: "#/components/schemas/Coordinate"
+        latency:
+          type: string
+          description: The previous response time of this Battlesnake, in milliseconds. If the Battlesnake timed out and failed to respond, the game timeout will be returned.
+        head:
+          $ref: "#/components/schemas/Coordinate"
+        length:
+          type: integer
+          description: The length of the snake (number of segments)
+        shout:
+          type: string
+          description: The message shouted by this snake on the previous turn
+        squad:
+          type: string
+          description: The squad the snake belongs to (if any)
+        customizations:
+          type: object
+          description: Optional cosmetic overrides for this Battlesnake
+          properties:
+            color:
+              type: string
+              description: The color the snake is currently using (hex)
+            head:
+              type: string
+              description: The head type the snake is currently using
+            tail:
+              type: string
+              description: The tail type the snake is currently using
+      required:
+        - id
+        - name
+        - health
+        - body
+        - head
+        - length
+

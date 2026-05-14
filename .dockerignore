@@ -1,0 +1,15 @@
+.git
+.idea
+.vscode
+.claude
+vendor
+node_modules
+var
+build
+.phpunit.cache
+.phpunit.result.cache
+*.log
+TASKS.md
+DECISIONS.md
+README.md
+docker-compose*.yml

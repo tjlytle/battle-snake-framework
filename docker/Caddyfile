@@ -1,0 +1,16 @@
+{
+    admin off
+}
+
+:80 {
+    root * /var/www/html/public
+
+    php_fastcgi php:9000
+
+    file_server
+
+    log {
+        output stdout
+        format console
+    }
+}

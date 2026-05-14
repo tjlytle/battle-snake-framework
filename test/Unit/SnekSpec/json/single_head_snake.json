@@ -1,0 +1,57 @@
+{
+  "game": {
+    "id": "generated-scenario",
+    "ruleset": {
+      "name": "standard",
+      "version": "1.2.3"
+    },
+    "timeout": 500
+  },
+  "turn": 1,
+  "board": {
+    "height": 11,
+    "width": 11,
+    "food": [],
+    "hazards": [],
+    "snakes": [
+      {
+        "id": "s",
+        "name": "s",
+        "health": 90,
+        "body": [
+          {
+            "x": 4,
+            "y": 4
+          }
+        ],
+        "latency": "111",
+        "head": {
+          "x": 4,
+          "y": 4
+        },
+        "length": 1,
+        "squad": "",
+        "shout": "boo!"
+      }
+    ]
+  },
+  "you": {
+    "id": "s",
+    "name": "s",
+    "health": 90,
+    "body": [
+      {
+        "x": 4,
+        "y": 4
+      }
+    ],
+    "latency": "111",
+    "head": {
+      "x": 4,
+      "y": 4
+    },
+    "length": 1,
+    "squad": "",
+    "shout": "boo!"
+  }
+}

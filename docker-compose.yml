@@ -1,0 +1,58 @@
+services:
+  php:
+    build:
+      context: .
+      target: dev
+      args:
+        WWW_UID: "${UID:-1000}"
+        WWW_GID: "${GID:-1000}"
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - .:/var/www/html
+      - composer-cache:/var/www/.composer/cache
+    environment:
+      PHP_IDE_CONFIG: "serverName=battlesnake"
+      SNAKE_DSN: "${SNAKE_DSN:-sqlite:////var/www/html/var/snake.db}"
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "${PORT:-8088}:80"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+      - .:/var/www/html
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - php
+
+  mysql:
+    image: mysql:8.0
+    profiles: ["mysql"]
+    environment:
+      MYSQL_DATABASE: battlesnake
+      MYSQL_USER: battlesnake
+      MYSQL_PASSWORD: battlesnake
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  battlesnake:
+    image: ghcr.io/battlesnakeofficial/rules:latest
+    profiles: ["play"]
+    depends_on:
+      - caddy
+    # Override `command` at run time, e.g.:
+    #   docker compose --profile play run --rm battlesnake play --url http://caddy --name yours
+    entrypoint: ["battlesnake"]
+
+volumes:
+  composer-cache:
+  caddy-data:
+  caddy-config:
+  mysql-data:

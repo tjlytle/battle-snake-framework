@@ -1,0 +1,13 @@
+default:
+  # Crell\Serde 1.5 triggers a PHP 8.5 deprecation; ignore it until upstream is patched.
+  # 8191 = E_ALL (32767) & ~E_DEPRECATED (8192) & ~E_USER_DEPRECATED (16384)
+  calls:
+    error_reporting: 8191
+  autoload:
+    "BattleSnake\\Tests\\Behat\\": "test/Behat/bootstrap"
+  suites:
+    default:
+      paths:
+        - "%paths.base%/test/Behat/features"
+      contexts:
+        - BattleSnake\Tests\Behat\FeatureContext

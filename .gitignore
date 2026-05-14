@@ -1,0 +1,13 @@
+/vendor/
+/var/*.db
+/var/*.db-journal
+/build/
+/.phpunit.cache/
+/.phpunit.result.cache
+.claude/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+.env
+.env.local
