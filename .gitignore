@@ -4,7 +4,8 @@
 /build/
 /.phpunit.cache/
 /.phpunit.result.cache
-.claude/
+.claude/*
+!.claude/skills/
 .idea/
 .vscode/
 *.swp
